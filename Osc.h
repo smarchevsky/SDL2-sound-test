@@ -10,7 +10,7 @@ public:
     float genSine(float freq)
     {
         float x = (updatedPhase(freq) - .5f) * 2.f;
-        return (4.f * x) * (1.f - abs(x));
+        return (4.f * x) * (1.f - fabs(x));
     }
     float genSaw(float freq) { return updatedPhase(freq) * 2.f - 1.f; }
     float genTriangle(float freq) { return m_phase * 4.f + glm::clamp(2.f - updatedPhase(freq) * 8.f, -4.f, 0.f); }
@@ -25,6 +25,5 @@ private:
     }
     float m_phase = 0;
 };
-
 
 #endif // OSC_H
