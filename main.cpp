@@ -24,7 +24,7 @@ void audio_callback(void* user_data, Uint8* raw_buffer, int bytes)
     if (!sound)
         return;
     for (int sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
-        float wave = sound->updateWave(INV_SR);
+        float wave = sound->updateWave();
         buffer[sampleIndex] = (Sint16)(32767 * glm::clamp(sigmoid(wave), -1.f, 1.f));
     }
 }
@@ -47,7 +47,7 @@ int main()
         }
     }
     Sound sound;
-    sound.attack(440.f);
+    sound.attack(440.f * INV_SR);
 
     SDL_AudioSpec want;
     want.freq = SAMPLE_RATE;
