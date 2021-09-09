@@ -1,7 +1,7 @@
-#include<SDL2/SDL.h>
-#include<SDL2/SDL_mixer.h>
-#include<glm/glm.hpp>
-#include<glm/gtc/random.hpp>
+#include "Osc.h"
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
 #include <iostream>
 
@@ -17,17 +17,14 @@ void audio_callback(void* user_data, Uint8* raw_buffer, int bytes)
 {
     Sint16* buffer = (Sint16*)raw_buffer;
     int length = bytes / 2; // 2 bytes per sample for AUDIO_S16SYS
-    float* soundTime = reinterpret_cast<float*>(user_data);
-    if (!soundTime)
+    Osc* osc = reinterpret_cast<Osc*>(user_data);
+    if (!osc)
         return;
     for (int sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
-        *soundTime = glm::fract(*soundTime + INV_SR);
-        float sound = sin(*soundTime * 1000.f * M_PI) * 0.1f;
-        //sound = glm::linearRand(-1.f, 1.f);
-        buffer[sampleIndex] = (Sint16)(32767 * glm::clamp(sigmoid(sound), -1.f, 1.f));
+        float wave = osc->genTriangle(300 * INV_SR) * 0.1f;
+        buffer[sampleIndex] = (Sint16)(32767 * glm::clamp(sigmoid(wave), -1.f, 1.f));
     }
 }
-
 
 int main()
 {
@@ -46,14 +43,14 @@ int main()
             }
         }
     }
-    float time = 0;
+    Osc oscilator;
     SDL_AudioSpec want;
     want.freq = SAMPLE_RATE;
     want.format = AUDIO_S16SYS; // sample type (signed short 16 bit)
     want.channels = 1;
     want.samples = 2048;
     want.callback = audio_callback;
-    want.userdata = &time;
+    want.userdata = &oscilator;
 
     SDL_AudioSpec have;
     SDL_AudioDeviceID audio_device = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
@@ -70,9 +67,8 @@ int main()
             } else if (e.key.repeat == 0) {
 
                 auto keyId = e.key.keysym.sym;
-                //if (keyId == SDLK_ESCAPE)
-                //    quit = true;
-
+                if (keyId == SDLK_q && (e.key.keysym.mod & SDLK_LEFT))
+                    quit = true;
             }
         }
     }
