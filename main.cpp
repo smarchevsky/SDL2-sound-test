@@ -1,4 +1,4 @@
-#include "Sound.h"
+#include "SoundProcessor.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
@@ -8,7 +8,7 @@
 
 #define LOG(x) std::cout << x << std::endl
 
-typedef Sound UserDataType;
+typedef SoundProcessor UserDataType;
 
 SDL_Window* gWindow = NULL;
 const int SAMPLE_RATE = 44100;
@@ -20,11 +20,11 @@ void audio_callback(void* user_data, Uint8* raw_buffer, int bytes)
 {
     Sint16* buffer = (Sint16*)raw_buffer;
     int length = bytes / 2; // 2 bytes per sample for AUDIO_S16SYS
-    UserDataType* sound = reinterpret_cast<UserDataType*>(user_data);
-    if (!sound)
+    UserDataType* soundProcessor = reinterpret_cast<UserDataType*>(user_data);
+    if (!soundProcessor)
         return;
     for (int sampleIndex = 0; sampleIndex < length; ++sampleIndex) {
-        float wave = sound->updateWave();
+        float wave = soundProcessor->update();
         buffer[sampleIndex] = (Sint16)(32767 * glm::clamp(sigmoid(wave), -1.f, 1.f));
     }
 }
@@ -46,8 +46,9 @@ int main()
             }
         }
     }
-    Sound sound;
-    sound.attack(440.f * INV_SR);
+    SoundProcessor soundProcessor(SAMPLE_RATE);
+    soundProcessor.addSound(440.f);
+    soundProcessor.addSound(440.f * powf(2.f, 3 / 12.f));
 
     SDL_AudioSpec want;
     want.freq = SAMPLE_RATE;
@@ -56,8 +57,8 @@ int main()
     want.samples = 2048;
     want.callback = audio_callback;
 
-    static_assert(std::is_same<decltype(sound), UserDataType>::value, "UserDataType does not match type");
-    want.userdata = &sound;
+    static_assert(std::is_same<decltype(soundProcessor), UserDataType>::value, "UserDataType does not match type");
+    want.userdata = &soundProcessor;
 
     SDL_AudioSpec have;
     SDL_AudioDeviceID audio_device = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
