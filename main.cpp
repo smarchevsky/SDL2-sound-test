@@ -1,10 +1,13 @@
 #include "SoundProcessor.h"
+#include "KeyMapper.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
 #include <iostream>
+#include <optional>
 #include <type_traits>
+#include <unordered_map>
 
 #define LOG(x) std::cout << x << std::endl
 
@@ -47,8 +50,8 @@ int main()
         }
     }
     SoundProcessor soundProcessor(SAMPLE_RATE);
-    soundProcessor.addSound(440.f);
-    soundProcessor.addSound(440.f * powf(2.f, 3 / 12.f));
+    //soundProcessor.addSound(440.f);
+    //soundProcessor.addSound(440.f * powf(2.f, 3 / 12.f));
 
     SDL_AudioSpec want;
     want.freq = SAMPLE_RATE;
@@ -75,8 +78,22 @@ int main()
             } else if (e.key.repeat == 0) {
 
                 auto keyId = e.key.keysym.sym;
-                if (keyId == SDLK_q && (e.key.keysym.mod & SDLK_LEFT)) // ctrl + q
+                if (e.type == SDL_KEYDOWN && keyId == SDLK_q && (e.key.keysym.mod & SDLK_LEFT)) // ctrl + q
                     quit = true;
+
+                if (e.type == SDL_KEYDOWN) {
+                    int tone;
+                    bool validTone = KeyMapper::get().getTone(keyId, tone);
+                    if (validTone) {
+                        soundProcessor.addSound(tone);
+                    }
+                } else if (e.type == SDL_KEYUP) {
+                    int tone;
+                    bool validTone = KeyMapper::get().getTone(keyId, tone);
+                    if (validTone) {
+                        soundProcessor.removeSound(tone);
+                    }
+                }
             }
         }
     }

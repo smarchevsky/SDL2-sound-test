@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(${SDL2_INCLUDE_DIRS})
 include_directories(${GLM_INCLUDE_DIRS})
 
-add_executable(SDL2_Sound main.cpp)
+add_executable(SDL2_Sound main.cpp KeyMapper.cpp)
 target_link_libraries(SDL2_Sound ${SDL2_LIBRARIES})
 
 target_link_libraries(SDL2_Sound ${SDL_MIXER_LIBRARY})
